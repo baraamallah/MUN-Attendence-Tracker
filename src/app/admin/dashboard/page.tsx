@@ -5,12 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
-import { Users, Search, LayoutDashboard, BarChartHorizontalBig } from "lucide-react";
-import { useParticipants } from "@/hooks/useParticipants"; // For potential summary data
+import { Users, Search, LayoutDashboard, BarChartHorizontalBig, Loader2, AlertTriangle } from "lucide-react";
+import { useParticipants } from "@/hooks/useParticipants";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AdminDashboardPage() {
-  const { user } = useAuth();
-  const { data: participants, isLoading } = useParticipants(); // Fetch all for summary
+  const { user } = useAuth(); // Assuming admin status is already handled by layout
+  const { data: participants, isLoading: participantsLoading, error: participantsError } = useParticipants();
 
   const totalParticipants = participants?.length ?? 0;
   const presentParticipants = participants?.filter(p => p.attendanceStatus).length ?? 0;
@@ -24,6 +25,17 @@ export default function AdminDashboardPage() {
         </p>
       </div>
 
+      {participantsError && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error Loading Participant Data</AlertTitle>
+          <AlertDescription>
+            Could not fetch participant summaries. Please ensure you are connected and have the necessary permissions.
+            {participantsError.message && <p className="text-xs mt-1">Details: {participantsError.message}</p>}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -33,8 +45,10 @@ export default function AdminDashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-                <div className="text-2xl font-bold">-</div>
+            {participantsLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            ) : participantsError ? (
+                <span className="text-destructive text-sm font-semibold">Error</span>
             ) : (
                 <div className="text-2xl font-bold">{totalParticipants}</div>
             )}
@@ -51,8 +65,10 @@ export default function AdminDashboardPage() {
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-             {isLoading ? (
-                <div className="text-2xl font-bold">-</div>
+             {participantsLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            ) : participantsError ? (
+                <span className="text-destructive text-sm font-semibold">Error</span>
             ) : (
                 <div className="text-2xl font-bold">{presentParticipants}</div>
             )}
@@ -82,20 +98,6 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Placeholder for future charts or more detailed summaries */}
-      {/* 
-      <Card>
-        <CardHeader>
-          <CardTitle>Attendance Overview</CardTitle>
-          <CardDescription>Chart showing attendance trends (placeholder).</CardDescription>
-        </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center bg-muted/50 rounded-md">
-          <BarChartHorizontalBig className="h-16 w-16 text-muted-foreground" />
-          <p className="ml-4 text-muted-foreground">Chart will be displayed here.</p>
-        </CardContent>
-      </Card>
-      */}
     </div>
   );
 }
