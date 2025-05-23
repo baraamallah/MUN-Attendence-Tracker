@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, BarChart3, LogOut, Search, Settings, ShieldCheck, LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, Users, Search, Settings, LogOut, ShieldCheck } from 'lucide-react'; // Added Settings
 import { 
   Sidebar, 
   SidebarContent, 
@@ -23,8 +23,8 @@ const menuItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/dashboard/participants', label: 'Participants', icon: Users },
   { href: '/admin/dashboard/search', label: 'AI Search', icon: Search },
-  // { href: '/admin/dashboard/reports', label: 'Reports', icon: BarChart3 },
-  // { href: '/admin/dashboard/settings', label: 'Settings', icon: Settings },
+  // { href: '/admin/dashboard/reports', label: 'Reports', icon: BarChart3 }, // Still commented
+  { href: '/admin/dashboard/settings', label: 'Settings', icon: Settings }, // Uncommented and added
 ];
 
 export default function AdminSidebar() {
@@ -61,7 +61,7 @@ export default function AdminSidebar() {
             <SidebarMenuItem key={item.href}>
               <Link href={item.href} passHref legacyBehavior>
                 <SidebarMenuButton
-                  isActive={pathname === item.href || (item.href !== '/admin/dashboard' && pathname.startsWith(item.href) && item.href.split('/').length === pathname.split('/').length ) || (pathname.startsWith(item.href) && item.href !== '/admin/dashboard' && item.href.split('/').length < pathname.split('/').length)}
+                  isActive={pathname === item.href || (item.href !== '/admin/dashboard' && pathname.startsWith(item.href))}
                   tooltip={{ children: item.label, side: 'right' }}
                   onClick={handleNavigation}
                 >

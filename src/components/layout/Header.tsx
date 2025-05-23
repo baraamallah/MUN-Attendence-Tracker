@@ -1,17 +1,26 @@
+
+"use client"; // Added client directive for hooks
+
 import Link from 'next/link';
-import { Users } from 'lucide-react';
+import { Users, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
 import { Button } from '@/components/ui/button';
-import { SheetTrigger } from '@/components/ui/sheet'; // For mobile sidebar toggle if needed
-import { SidebarTrigger } from '@/components/ui/sidebar'; // For desktop sidebar toggle
+import { SheetTrigger } from '@/components/ui/sheet';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { usePathname, useRouter } from 'next/navigation'; // Added hooks
 
 interface HeaderProps {
   title: string;
   showSidebarToggle?: boolean;
-  onLogout?: () => void; // Optional logout handler
-  isAdmin?: boolean; // To conditionally show logout
+  onLogout?: () => void;
+  isAdmin?: boolean;
 }
 
 export default function Header({ title, showSidebarToggle = false, onLogout, isAdmin = false }: HeaderProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const isAdminSubPage = pathname.startsWith('/admin/dashboard/') && pathname !== '/admin/dashboard';
+
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6 shadow-sm">
       {showSidebarToggle && (
@@ -20,7 +29,7 @@ export default function Header({ title, showSidebarToggle = false, onLogout, isA
           <div className="hidden md:block">
             <SidebarTrigger />
           </div>
-          {/* Mobile sidebar toggle - Assuming Sheet is used in AdminLayout */}
+          {/* Mobile sidebar toggle */}
           <SheetTrigger asChild className="md:hidden">
             <Button variant="outline" size="icon">
               <Users className="h-5 w-5" />
@@ -33,9 +42,22 @@ export default function Header({ title, showSidebarToggle = false, onLogout, isA
         <Users className="h-6 w-6 text-primary" />
         <span className="sr-only">MUN Tracker</span>
       </Link>
-      <div className="flex-1">
-        <h1 className="text-xl font-semibold">{title}</h1>
+      
+      <div className="flex-1 flex items-center gap-2"> {/* Adjusted gap for back button */}
+        {isAdminSubPage && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => router.push('/admin/dashboard')} 
+            aria-label="Back to Dashboard"
+            className="h-8 w-8" // Smaller back button
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        )}
+        <h1 className="text-xl font-semibold whitespace-nowrap overflow-hidden text-ellipsis">{title}</h1>
       </div>
+
       {isAdmin && onLogout && (
         <Button variant="outline" onClick={onLogout}>
           Logout
