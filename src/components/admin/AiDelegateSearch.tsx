@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -11,6 +12,7 @@ import type { Participant } from "@/types";
 import { searchDelegatesFlow } from "@/ai/flows/delegateSearch"; 
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface AISearchResult {
   participant: Participant;
@@ -79,10 +81,11 @@ export default function AiDelegateSearch() {
         </div>
 
         {error && (
-          <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg dark:bg-red-200 dark:text-red-800 flex items-center" role="alert">
-            <AlertTriangle className="mr-2 h-5 w-5" />
-            <span className="font-medium">Error:</span> {error}
-          </div>
+          <Alert variant="destructive" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         {searched && !isLoading && !error && results.length === 0 && (
@@ -128,3 +131,4 @@ export default function AiDelegateSearch() {
     </Card>
   );
 }
+
