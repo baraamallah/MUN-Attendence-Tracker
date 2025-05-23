@@ -9,20 +9,17 @@ import { useState, useEffect } from 'react';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { observeAuthState } from '@/lib/firebase/auth';
 import { useRouter } from 'next/navigation';
-
-// Define the UID of the sole administrator
-const ADMIN_UID = "B4ZSELBHYFdyjlN5m0KwFnJwNr73";
+import { toast } from "@/hooks/use-toast"; // Ensure toast is imported
 
 interface AuthState {
   user: FirebaseUser | null;
   loading: boolean;
-  isAdmin: boolean; 
+  isAdmin: boolean;
 }
 
 export function useAuth(): AuthState {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = observeAuthState((firebaseUser) => {
@@ -32,15 +29,15 @@ export function useAuth(): AuthState {
     return () => unsubscribe();
   }, []);
 
-  // Check if the logged-in user's UID matches the ADMIN_UID
-  const isAdmin = user ? user.uid === ADMIN_UID : false; 
+  // Any authenticated user is now considered an admin for client-side purposes.
+  const isAdmin = !!user;
 
   return { user, loading, isAdmin };
 }
 
 // Hook for protecting client-side routes or components
 export function useRequireAuth(redirectUrl: string = "/admin/login") {
-  const { user, loading, isAdmin } = useAuth(); // Get isAdmin state as well
+  const { user, loading, isAdmin } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -49,20 +46,15 @@ export function useRequireAuth(redirectUrl: string = "/admin/login") {
         // Not logged in, redirect to login
         router.push(redirectUrl);
       } else if (!isAdmin) {
-        // Logged in, but not the designated admin
-        // Redirect to a public page or a "not authorized" page
-        // For now, let's redirect to the homepage as an example
+        // This condition will now only be met if 'user' is null, which is handled above.
+        // Kept for logical structure, but effectively means 'user' exists but is not considered admin.
+        // With isAdmin = !!user, this branch should not be hit if user exists.
         toast({ title: 'Access Denied', description: 'You are not authorized to view this page.', variant: 'destructive' });
-        router.push('/'); 
+        router.push('/');
       }
-      // If user is logged in AND isAdmin is true, they can stay.
+      // If user is logged in, isAdmin will be true, and they can stay.
     }
   }, [user, loading, isAdmin, router, redirectUrl]);
 
   return { user, loading, isAdmin };
 }
-
-// It's good practice to also import toast if it's used, assuming it's available
-// If not used directly here but in components consuming this hook, it's fine.
-// For the example redirection, we'd need toast.
-import { toast } from "@/hooks/use-toast";

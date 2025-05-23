@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
 export default function AdminDashboardPage() {
-  const { user } = useAuth();
+  const { user } = useAuth(); // user.isAdmin is now simply !!user
   const { data: participants, isLoading: participantsLoading, error: participantsError } = useParticipants();
 
   const totalParticipants = participants?.length ?? 0;
@@ -38,14 +38,25 @@ export default function AdminDashboardPage() {
             <strong className="mt-2 block">Please check the following:</strong>
             <ol className="list-decimal list-inside mt-1 space-y-1 text-sm">
               <li>
-                <strong>Firestore Security Rules:</strong> Ensure your rules in the Firebase Console allow read access for your admin UID ('B4ZSELBHYFdyjlN5m0KwFnJwNr73') to the 'participants' collection.
-                The rule should look similar to:
+                <strong>Firestore Security Rules:</strong> Ensure your rules in the Firebase Console allow read access for authenticated users.
+                If you are using the temporary "any authenticated user" rule, it should look like:
                 <pre className="mt-1 p-2 bg-muted rounded text-xs overflow-auto">
                   {`service cloud.firestore {
   match /databases/{database}/documents {
     match /participants/{document=**} {
+      // Allows any authenticated user
+      allow read, write: if request.auth != null;
+    }
+  }
+}`}
+                </pre>
+                If you intend to restrict to a specific admin UID (e.g., 'YOUR_ADMIN_UID_HERE'), it should be:
+                 <pre className="mt-1 p-2 bg-muted rounded text-xs overflow-auto">
+                  {`service cloud.firestore {
+  match /databases/{database}/documents {
+    match /participants/{document=**} {
       allow read, write: if request.auth != null && 
-                           request.auth.uid == 'B4ZSELBHYFdyjlN5m0KwFnJwNr73';
+                           request.auth.uid == 'YOUR_ADMIN_UID_HERE';
     }
   }
 }`}
@@ -53,7 +64,7 @@ export default function AdminDashboardPage() {
               </li>
               <li>
                 <strong>Admin Authentication:</strong> Open your browser's Developer Console (F12) and look for a message starting with "[AdminDashboardLayout] Auth State:".
-                Verify that the `userId` matches `B4ZSELBHYFdyjlN5m0KwFnJwNr73` and `isAdmin` is `true`.
+                Verify that `isUserPresent` is `true` and `isAdminClientCheck` is `true`. The `userId` should be your logged-in user's ID.
               </li>
               <li>
                 <strong>Network Issues:</strong> Check your internet connection.
@@ -143,7 +154,7 @@ export default function AdminDashboardPage() {
 }
 
 // Helper Icon (can be moved to a shared icons file if used elsewhere)
-function UserCheckIcon(props: React.SVGProps<SVGSVGElement>) { // Renamed from UserCheck to avoid conflict with lucide-react if it exists
+function UserCheckIcon(props: React.SVGProps<SVGSVGElement>) { 
   return (
     <svg
       {...props}

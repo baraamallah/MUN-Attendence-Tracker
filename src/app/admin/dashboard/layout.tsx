@@ -11,7 +11,7 @@ import { Loader2, AlertTriangle } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { signOut } from '@/lib/firebase/auth';
 import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button'; // Added for Access Denied case
+import { Button } from '@/components/ui/button';
 
 export default function AdminDashboardLayout({
   children,
@@ -23,12 +23,13 @@ export default function AdminDashboardLayout({
   const { toast } = useToast();
 
   // Log the state for debugging dashboard access
+  // With the new logic, any authenticated user is considered an admin by the client.
   console.log('[AdminDashboardLayout] Auth State:', {
     authLoading,
     userId: user?.uid,
     isUserPresent: !!user,
-    isAdmin,
-    expectedAdminUID: "B4ZSELBHYFdyjlN5m0KwFnJwNr73" // For easy comparison in console
+    isAdminClientCheck: isAdmin, // Reflects client-side isAdmin status
+    message: isAdmin ? "User is authenticated and considered admin by client." : "User not authenticated or not considered admin by client."
   });
 
   const handleLogout = async () => {
@@ -50,12 +51,8 @@ export default function AdminDashboardLayout({
     );
   }
 
-  // useRequireAuth should handle redirection if !user or !isAdmin.
-  // These checks are defensive for the layout rendering itself.
   if (!user) {
     // This state should ideally not be reached if useRequireAuth redirects properly.
-    // If it is, it might indicate an issue with the redirect logic or a race condition.
-    // useRequireAuth would have already redirected to /admin/login.
     return (
       <div className="flex items-center justify-center h-screen bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -65,15 +62,16 @@ export default function AdminDashboardLayout({
   }
 
   if (!isAdmin) {
-    // This state should also ideally not be reached if useRequireAuth redirects.
-    // It indicates the user is logged in but not the designated admin.
-    // useRequireAuth would have already redirected to /.
+    // This state implies user is authenticated (user object exists) but isAdmin check failed.
+    // With current `isAdmin = !!user` logic, this means `user` is somehow null here,
+    // which should have been caught by the `!user` check above or by useRequireAuth.
+    // This is a defensive check.
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background p-4 text-center">
         <AlertTriangle className="h-16 w-16 text-destructive mb-4" />
         <h1 className="text-2xl font-semibold">Access Denied</h1>
         <p className="text-muted-foreground mt-2">
-          You are not authorized to view this page.
+          You are not authorized to view this page. This might be a temporary issue.
         </p>
         <Button onClick={() => router.push('/')} className="mt-6">
           Go to Homepage
@@ -82,7 +80,7 @@ export default function AdminDashboardLayout({
     );
   }
 
-  // If we reach here, user is authenticated and is an admin.
+  // If we reach here, user is authenticated and client considers them admin.
   return (
     <SidebarProvider defaultOpen={true}>
       <AdminSidebar />
