@@ -5,16 +5,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
-import { Users, Search, LayoutDashboard, BarChartHorizontalBig, Loader2, AlertTriangle } from "lucide-react";
+import { Users, Search, LayoutDashboard, UserCheck, Loader2, AlertTriangle, ArrowRight } from "lucide-react";
 import { useParticipants } from "@/hooks/useParticipants";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 export default function AdminDashboardPage() {
-  const { user } = useAuth(); // Assuming admin status is already handled by layout
+  const { user } = useAuth(); 
   const { data: participants, isLoading: participantsLoading, error: participantsError } = useParticipants();
 
   const totalParticipants = participants?.length ?? 0;
   const presentParticipants = participants?.filter(p => p.attendanceStatus).length ?? 0;
+
+  const quickActionLinkClasses = "group flex flex-col justify-between items-start p-4 rounded-lg border bg-card hover:bg-muted/50 transition-all duration-200 shadow-sm hover:shadow-md min-h-[100px]";
 
   return (
     <div className="space-y-6">
@@ -30,7 +33,8 @@ export default function AdminDashboardPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Error Loading Participant Data</AlertTitle>
           <AlertDescription>
-            Could not fetch participant summaries. Please ensure you are connected and have the necessary permissions.
+            Could not fetch participant summaries. This might be due to network issues or Firestore permissions.
+            Please ensure your Firestore security rules allow the admin user to read the 'participants' collection.
             {participantsError.message && <p className="text-xs mt-1">Details: {participantsError.message}</p>}
           </AlertDescription>
         </Alert>
@@ -62,7 +66,7 @@ export default function AdminDashboardPage() {
             <CardTitle className="text-sm font-medium">
               Currently Present
             </CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
+            <UserCheckIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
              {participantsLoading ? (
@@ -78,22 +82,34 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
          <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center">
+              <LayoutDashboard className="h-4 w-4 text-muted-foreground mr-2" />
               Quick Actions
             </CardTitle>
-            <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent className="flex flex-col space-y-2">
-             <Link href="/admin/dashboard/participants" passHref legacyBehavior>
-                <Button variant="outline" className="w-full justify-start">
-                    <Users className="mr-2 h-4 w-4" /> Manage Participants
-                </Button>
+          <CardContent className="flex flex-col space-y-3 pt-2">
+            <Link href="/admin/dashboard/participants" passHref legacyBehavior>
+              <a className={cn(quickActionLinkClasses, "hover:border-primary/50")}>
+                <div className="flex items-center">
+                  <Users className="mr-3 h-6 w-6 text-primary" />
+                  <span className="font-semibold text-md">Manage Participants</span>
+                </div>
+                <div className="flex items-center text-sm text-muted-foreground mt-auto pt-1 group-hover:text-primary">
+                  View & Edit List <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform"/>
+                </div>
+              </a>
             </Link>
             <Link href="/admin/dashboard/search" passHref legacyBehavior>
-                <Button variant="outline" className="w-full justify-start">
-                    <Search className="mr-2 h-4 w-4" /> AI Delegate Search
-                </Button>
+               <a className={cn(quickActionLinkClasses, "hover:border-accent/50")}>
+                <div className="flex items-center">
+                  <Search className="mr-3 h-6 w-6 text-accent" />
+                  <span className="font-semibold text-md">AI Delegate Search</span>
+                </div>
+                <div className="flex items-center text-sm text-muted-foreground mt-auto pt-1 group-hover:text-accent">
+                  Find Delegates <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform"/>
+                </div>
+              </a>
             </Link>
           </CardContent>
         </Card>
@@ -103,7 +119,7 @@ export default function AdminDashboardPage() {
 }
 
 // Helper Icon (can be moved to a shared icons file if used elsewhere)
-function UserCheck(props: React.SVGProps<SVGSVGElement>) {
+function UserCheckIcon(props: React.SVGProps<SVGSVGElement>) { // Renamed from UserCheck to avoid conflict with lucide-react if it exists
   return (
     <svg
       {...props}
