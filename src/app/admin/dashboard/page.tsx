@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
 export default function AdminDashboardPage() {
-  const { user } = useAuth(); 
+  const { user } = useAuth();
   const { data: participants, isLoading: participantsLoading, error: participantsError } = useParticipants();
 
   const totalParticipants = participants?.length ?? 0;
@@ -29,13 +29,37 @@ export default function AdminDashboardPage() {
       </div>
 
       {participantsError && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="my-4">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error Loading Participant Data</AlertTitle>
+          <AlertTitle>Oops! Something went wrong loading participant data.</AlertTitle>
           <AlertDescription>
-            Could not fetch participant summaries. This might be due to network issues or Firestore permissions.
-            Please ensure your Firestore security rules allow the admin user to read the 'participants' collection.
-            {participantsError.message && <p className="text-xs mt-1">Details: {participantsError.message}</p>}
+            <p className="font-semibold">Error: {participantsError.message}</p>
+            <p className="mt-2">This usually means there's an issue with Firestore permissions.</p>
+            <strong className="mt-2 block">Please check the following:</strong>
+            <ol className="list-decimal list-inside mt-1 space-y-1 text-sm">
+              <li>
+                <strong>Firestore Security Rules:</strong> Ensure your rules in the Firebase Console allow read access for your admin UID ('B4ZSELBHYFdyjlN5m0KwFnJwNr73') to the 'participants' collection.
+                The rule should look similar to:
+                <pre className="mt-1 p-2 bg-muted rounded text-xs overflow-auto">
+                  {`service cloud.firestore {
+  match /databases/{database}/documents {
+    match /participants/{document=**} {
+      allow read, write: if request.auth != null && 
+                           request.auth.uid == 'B4ZSELBHYFdyjlN5m0KwFnJwNr73';
+    }
+  }
+}`}
+                </pre>
+              </li>
+              <li>
+                <strong>Admin Authentication:</strong> Open your browser's Developer Console (F12) and look for a message starting with "[AdminDashboardLayout] Auth State:".
+                Verify that the `userId` matches `B4ZSELBHYFdyjlN5m0KwFnJwNr73` and `isAdmin` is `true`.
+              </li>
+              <li>
+                <strong>Network Issues:</strong> Check your internet connection.
+              </li>
+            </ol>
+            <p className="mt-2">If the problem persists after checking these, please try refreshing the page or contact support.</p>
           </AlertDescription>
         </Alert>
       )}
