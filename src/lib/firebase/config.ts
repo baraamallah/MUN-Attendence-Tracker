@@ -14,15 +14,17 @@ const messagingSenderId = process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID;
 const appId = process.env.NEXT_PUBLIC_FIREBASE_APP_ID;
 const measurementId = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID; // Optional
 
-// Check if essential placeholder values (or missing values) are being used
-// The API key check is specifically for keys starting with "AIzaSy" which is typical for Firebase web keys.
+const isConfigPlaceholder = (value?: string, placeholder?: string) => !value || value === placeholder;
+
 const isMissingConfig =
-  !apiKey || apiKey === "YOUR_API_KEY" || apiKey.startsWith("AIzaSy") === false ||
-  !authDomain || authDomain === "YOUR_AUTH_DOMAIN" ||
-  !projectId || projectId === "YOUR_PROJECT_ID" ||
-  !storageBucket || storageBucket === "YOUR_STORAGE_BUCKET" ||
-  !messagingSenderId || messagingSenderId === "YOUR_MESSAGING_SENDER_ID" ||
-  !appId || appId === "YOUR_APP_ID";
+  isConfigPlaceholder(apiKey, "YOUR_API_KEY") ||
+  isConfigPlaceholder(authDomain, "YOUR_AUTH_DOMAIN") ||
+  isConfigPlaceholder(projectId, "YOUR_PROJECT_ID") ||
+  isConfigPlaceholder(storageBucket, "YOUR_STORAGE_BUCKET") ||
+  isConfigPlaceholder(messagingSenderId, "YOUR_MESSAGING_SENDER_ID") ||
+  isConfigPlaceholder(appId, "YOUR_APP_ID") ||
+  // A more robust check for a valid API key format if it's not a placeholder
+  (apiKey && apiKey !== "YOUR_API_KEY" && !apiKey.startsWith("AIzaSy"));
 
 if (isMissingConfig) {
   const errorMessage = `
@@ -59,10 +61,9 @@ Detected values (these might be undefined or placeholders if not set):
 
 The application will likely not function correctly if Firebase is misconfigured.
 If initializeApp fails below, the build will stop with a Firebase SDK error.
-If you previously saw an 'auth/api-key-not-valid' error, it was likely due to this misconfiguration.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 `;
-  console.warn(errorMessage); // Use console.warn or .error for visibility in logs, but don't throw.
+  console.warn(errorMessage); // Log the warning but do not throw an error here.
 }
 
 const firebaseConfig = {
@@ -82,15 +83,13 @@ let db: Firestore;
 
 // Initialize Firebase
 // Ensure Firebase is initialized only once, important for Next.js environments.
-// If firebaseConfig is incomplete due to missing/invalid env vars, initializeApp will throw an error from the SDK.
 if (getApps().length === 0) {
   try {
     app = initializeApp(firebaseConfig);
   } catch (error) {
+    // This is where an error from the Firebase SDK itself (e.g., due to genuinely bad config from Vercel env vars) would be caught.
     console.error("Firebase initialization failed:", error);
-    // You might want to throw the error here if you want the build to explicitly fail
-    // when initializeApp fails, rather than potentially having other parts of the app
-    // try to use an uninitialized Firebase app. For build failures, this is often desired.
+    // Re-throwing the SDK's error is appropriate here as it indicates a fundamental problem.
     throw error; 
   }
 } else {
@@ -99,7 +98,7 @@ if (getApps().length === 0) {
 
 auth = getAuth(app);
 db = getFirestore(app);
-// if (typeof window !== 'undefined' && measurementId) { // Initialize analytics only on client side if needed and configured
+// if (typeof window !== 'undefined' && measurementId && firebaseConfig.measurementId) { // Initialize analytics only on client side if needed and configured
 //   analytics = getAnalytics(app);
 // }
 
