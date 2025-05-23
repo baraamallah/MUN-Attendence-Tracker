@@ -22,6 +22,15 @@ export default function AdminDashboardLayout({
   const router = useRouter();
   const { toast } = useToast();
 
+  // Log the state for debugging dashboard access
+  console.log('[AdminDashboardLayout] Auth State:', {
+    authLoading,
+    userId: user?.uid,
+    isUserPresent: !!user,
+    isAdmin,
+    expectedAdminUID: "B4ZSELBHYFdyjlN5m0KwFnJwNr73" // For easy comparison in console
+  });
+
   const handleLogout = async () => {
     try {
       await signOut();
@@ -46,6 +55,7 @@ export default function AdminDashboardLayout({
   if (!user) {
     // This state should ideally not be reached if useRequireAuth redirects properly.
     // If it is, it might indicate an issue with the redirect logic or a race condition.
+    // useRequireAuth would have already redirected to /admin/login.
     return (
       <div className="flex items-center justify-center h-screen bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -57,6 +67,7 @@ export default function AdminDashboardLayout({
   if (!isAdmin) {
     // This state should also ideally not be reached if useRequireAuth redirects.
     // It indicates the user is logged in but not the designated admin.
+    // useRequireAuth would have already redirected to /.
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background p-4 text-center">
         <AlertTriangle className="h-16 w-16 text-destructive mb-4" />
