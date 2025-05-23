@@ -15,7 +15,7 @@ const measurementId = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID; // Option
 
 // Check if essential placeholder values (or missing values) are being used
 if (
-  !apiKey || apiKey === "YOUR_API_KEY" || apiKey.startsWith("AIzaSyA") === false || // Basic check for a valid-looking key start
+  !apiKey || apiKey === "YOUR_API_KEY" || apiKey.startsWith("AIzaSy") === false || // General check for valid-looking key start
   !authDomain || authDomain === "YOUR_AUTH_DOMAIN" ||
   !projectId || projectId === "YOUR_PROJECT_ID" ||
   !storageBucket || storageBucket === "YOUR_STORAGE_BUCKET" ||
