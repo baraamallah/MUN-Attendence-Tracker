@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Environment variables can be exposed to the browser by prefixing with NEXT_PUBLIC_.
+  // No explicit env config needed here if that convention is followed.
+  // Example for server-only env vars (not used in this Firebase client-side setup):
+  // env: {
+  //   FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
+  // },
 };
 
 export default nextConfig;
