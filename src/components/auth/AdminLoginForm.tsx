@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -44,10 +45,15 @@ export default function AdminLoginForm() {
       router.push("/admin/dashboard");
     } catch (error: any) {
       let errorMessage = "An unexpected error occurred. Please try again.";
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+      // Handle common Firebase auth errors for invalid credentials
+      if (
+        error.code === 'auth/user-not-found' ||
+        error.code === 'auth/wrong-password' ||
+        error.code === 'auth/invalid-credential'
+      ) {
         errorMessage = "Invalid email or password. Please try again.";
       }
-      console.error("Login failed:", error);
+      console.error("Login failed:", error); // Keep console log for debugging
       toast({
         title: "Login Failed",
         description: errorMessage,
