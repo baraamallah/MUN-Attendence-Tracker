@@ -14,14 +14,15 @@ const appId = process.env.NEXT_PUBLIC_FIREBASE_APP_ID;
 const measurementId = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID; // Optional
 
 // Check if essential placeholder values (or missing values) are being used
-if (
-  !apiKey || apiKey === "YOUR_API_KEY" || apiKey.startsWith("AIzaSy") === false || // General check for valid-looking key start
+const isMissingConfig =
+  !apiKey || apiKey === "YOUR_API_KEY" || apiKey.startsWith("AIzaSy") === false ||
   !authDomain || authDomain === "YOUR_AUTH_DOMAIN" ||
   !projectId || projectId === "YOUR_PROJECT_ID" ||
   !storageBucket || storageBucket === "YOUR_STORAGE_BUCKET" ||
   !messagingSenderId || messagingSenderId === "YOUR_MESSAGING_SENDER_ID" ||
-  !appId || appId === "YOUR_APP_ID"
-) {
+  !appId || appId === "YOUR_APP_ID";
+
+if (isMissingConfig) {
   const errorMessage = `
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! FIREBASE IS NOT CONFIGURED !!
@@ -45,6 +46,7 @@ To fix this:
    NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_optional_measurement_id_here (if you use Analytics)
 
 5. IMPORTANT: Restart your Next.js development server after creating/modifying .env.local.
+   For deployments (e.g., Vercel), ensure these NEXT_PUBLIC_ variables are set in your project's environment settings.
 
 Detected values (these might be undefined or placeholders if not set):
   API Key: ${apiKey || 'NOT SET'}
@@ -59,8 +61,12 @@ If you previously saw an 'auth/api-key-not-valid' error, it was likely due to th
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 `;
   console.error(errorMessage);
-  // Throw a specific error to halt execution and make the problem very clear.
-  throw new Error("Firebase configuration error: Missing or invalid Firebase credentials in .env.local. Please see the detailed message in your server console and configure your .env.local file.");
+  // Only throw the custom error on the client-side.
+  // During server-side rendering or build, the console.error above serves as a warning.
+  // If config is truly bad, initializeApp below will likely throw a Firebase SDK error.
+  if (typeof window !== 'undefined') {
+    throw new Error("Firebase configuration error: Missing or invalid Firebase credentials in .env.local. Please see the detailed message in your server console and configure your .env.local file.");
+  }
 }
 
 const firebaseConfig = {
@@ -79,6 +85,8 @@ let db: Firestore;
 
 // Initialize Firebase
 // Ensure Firebase is initialized only once, important for Next.js environments
+// If firebaseConfig is incomplete due to missing env vars, initializeApp will throw an error.
+// This is expected behavior and will correctly fail the build if essential config is missing.
 if (getApps().length === 0) {
   app = initializeApp(firebaseConfig);
 } else {
