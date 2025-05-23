@@ -1,8 +1,9 @@
+
 "use client";
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, BarChart3, LogOut, Search, Settings, ShieldCheck } from 'lucide-react';
+import { Home, Users, BarChart3, LogOut, Search, Settings, ShieldCheck, LayoutDashboard } from 'lucide-react';
 import { 
   Sidebar, 
   SidebarContent, 
@@ -19,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
 const menuItems = [
-  { href: '/admin/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/dashboard/participants', label: 'Participants', icon: Users },
   { href: '/admin/dashboard/search', label: 'AI Search', icon: Search },
   // { href: '/admin/dashboard/reports', label: 'Reports', icon: BarChart3 },
@@ -30,7 +31,7 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const { toast } = useToast();
   const router = useRouter();
-  const { setOpenMobile } = useSidebar(); // To close mobile sidebar on nav
+  const { setOpenMobile } = useSidebar(); 
 
   const handleLogout = async () => {
     try {
@@ -43,8 +44,8 @@ export default function AdminSidebar() {
   };
 
   const handleNavigation = () => {
-    if (setOpenMobile) { // Check if setOpenMobile is available (it is when sidebar provider is used)
-        setOpenMobile(false); // Close mobile sidebar on navigation
+    if (setOpenMobile) { 
+        setOpenMobile(false); 
     }
   };
 
@@ -60,7 +61,7 @@ export default function AdminSidebar() {
             <SidebarMenuItem key={item.href}>
               <Link href={item.href} passHref legacyBehavior>
                 <SidebarMenuButton
-                  isActive={pathname === item.href || (item.href !== '/admin/dashboard' && pathname.startsWith(item.href))}
+                  isActive={pathname === item.href || (item.href !== '/admin/dashboard' && pathname.startsWith(item.href) && item.href.split('/').length === pathname.split('/').length ) || (pathname.startsWith(item.href) && item.href !== '/admin/dashboard' && item.href.split('/').length < pathname.split('/').length)}
                   tooltip={{ children: item.label, side: 'right' }}
                   onClick={handleNavigation}
                 >
