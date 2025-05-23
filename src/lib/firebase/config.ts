@@ -63,9 +63,9 @@ A build failure might still occur if initializeApp receives invalid or incomplet
 `;
   console.error(errorMessage);
   // We log the detailed error above for build diagnostics.
-  // We will NOT throw a custom error here to prevent it from halting the build prematurely.
-  // If the firebaseConfig object assembled from (potentially missing) env vars is truly invalid,
-  // the initializeApp call below should fail with a Firebase SDK error, which is the standard behavior.
+  // We will NOT throw a custom error here that could prematurely halt the build.
+  // If the firebaseConfig object assembled from (potentially missing/invalid) env vars is truly invalid,
+  // the initializeApp call below should fail with a Firebase SDK error, which is standard.
 }
 
 const firebaseConfig = {
@@ -94,7 +94,7 @@ if (getApps().length === 0) {
 
 auth = getAuth(app);
 db = getFirestore(app);
-// if (typeof window !== 'undefined') { // Initialize analytics only on client side if needed
+// if (typeof window !== 'undefined' && measurementId) { // Initialize analytics only on client side if needed and configured
 //   analytics = getAnalytics(app);
 // }
 
